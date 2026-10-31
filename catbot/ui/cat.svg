@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="cat" data-state="sleeping" viewBox="0 0 320 320" role="img" aria-label="Catbot is sleeping">
+  <g class="wave-ring"><circle cx="160" cy="160" r="120" fill="none"/><circle cx="160" cy="160" r="145" fill="none"/></g>
+  <g class="tail"><path d="M220 250 C 280 250, 290 180, 250 160" fill="none" stroke-width="14" stroke-linecap="round"/></g>
+  <g class="body"><ellipse cx="160" cy="245" rx="78" ry="58"/></g>
+  <g class="head">
+    <g class="ears">
+      <g class="ear ear-l"><path d="M100 120 L112 60 L148 100 Z"/><path class="ear-in" d="M110 108 L116 76 L136 98 Z"/></g>
+      <g class="ear ear-r"><path d="M220 120 L208 60 L172 100 Z"/><path class="ear-in" d="M210 108 L204 76 L184 98 Z"/></g>
+    </g>
+    <circle class="face" cx="160" cy="140" r="64"/>
+    <g class="eyes-open"><ellipse cx="136" cy="138" rx="9" ry="12"/><ellipse cx="184" cy="138" rx="9" ry="12"/>
+      <circle class="pupil" cx="136" cy="140" r="4"/><circle class="pupil" cx="184" cy="140" r="4"/></g>
+    <g class="eyes-closed"><path d="M126 140 q10 8 20 0"/><path d="M174 140 q10 8 20 0"/></g>
+    <g class="eyes-narrow"><path d="M126 138 h20"/><path d="M174 138 h20"/></g>
+    <g class="eyes-happy"><path d="M126 142 q10 -10 20 0"/><path d="M174 142 q10 -10 20 0"/></g>
+    <path class="nose" d="M154 160 h12 l-6 7 z"/>
+    <g class="whiskers"><path d="M110 165 h-34"/><path d="M110 172 l-32 6"/><path d="M210 165 h34"/><path d="M210 172 l32 6"/></g>
+  </g>
+  <g class="orbit"><circle cx="160" cy="62" r="5"/><circle cx="232" cy="140" r="5"/><circle cx="88" cy="140" r="5"/></g>
+  <g class="zzz"><text x="222" y="78">z</text><text x="240" y="56">z</text><text x="262" y="34">Z</text></g>
+  <g class="paw-stop"><ellipse cx="240" cy="200" rx="22" ry="26"/><path d="M228 186 v-8 M240 182 v-10 M252 186 v-8"/></g>
+  <g class="sparkle"><path d="M70 90 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M262 96 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M60 210 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M270 222 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
+</svg>

@@ -1,6 +1,6 @@
 # Catbot Design System — "Neon Noir Bazaar"
 
-Source of truth for everything in `catbot/ui/`. Track A (M8) builds from this file. Do not invent new colors, fonts, radii or durations: add a token here first.
+Source of truth for everything in `catbot/ui/`. **v2:** edited per `CATBOT_BUILD_SPEC.md` section 8.2 (ReAct loop: Plan card, 3 Laya bars, 8-stage rail, argv tool card). Do not invent new colors, fonts, radii or durations: add a token here first.
 
 Generated with the ui-ux-pro-max skill (base: Dark Mode OLED + real-time ops dashboard pattern), then pushed to a custom direction built on the team's own fonts.
 
@@ -128,11 +128,13 @@ Never put raw hex in component CSS. Use the tokens.
 | --- | --- | --- |
 | idle (no task for 20 s) | `--c-faint` | sleeping |
 | listen | `--c-magenta` | listening |
-| compile, route, select, fill, verify, check | `--c-violet` | thinking |
-| gate → allow, execute | `--c-cyan` | thinking |
+| think | `--c-violet` | thinking |
+| risk, gate (pending) | `--c-saffron` | thinking |
+| gate → allow | `--c-catnip` | thinking |
 | gate → confirm, confirm | `--c-saffron` | asking |
 | gate → deny, any error | `--c-chili` | blocked |
-| speak (task ok) | `--c-catnip` | done |
+| execute, result | `--c-cyan` | thinking |
+| speak, done ok | `--c-catnip` | done |
 
 Color is never the only signal: every stage also has a label and an icon.
 
@@ -192,22 +194,22 @@ Single page, `min-height: 100dvh`, max content width 1440px, side gutter `--s-5`
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ catbot.  ● live   router: LAYA  ·  ckpt: english  ·  os: windows   [⌘K] [?] │  top bar (sticky)
+│ catbot.  ● live   gate: KEYWORD · shadow · ckpt: english · os: macos  [?]   │  top bar (sticky)
 ├───────────────────────────────┬──────────────────────────────────────────────┤
 │                               │  01 PIPELINE                                 │
-│        (  CAT STAGE  )        │  listen › compile › route › select › fill ›  │
-│     big SVG cat + aura        │  verify › gate › confirm › execute › check › │
-│                               │  speak        (each pill lights + shows ms)  │
-│   "Soch raha hai…" (Gloock)   ├──────────────────────────┬───────────────────┤
+│        (  CAT STAGE  )        │  listen › think › risk › gate › confirm ›    │
+│     big SVG cat + aura        │  execute › result › speak   (pill + ms)      │
+│                               │                                   412 ms     │
+│   "Ek second…" (Gloock)       ├──────────────────────────┬───────────────────┤
 │                               │  02 LAYA DECIDES         │  03 VERDICT       │
-│  ~~~ transcript ticker ~~~    │  agent    desktop  ▇▇▇▇ 94│  ┌─────────────┐  │
-│                               │  tool  set_volume  ▇▇▇▇ 91│  │  ALLOWED ✓  │  │  sticker
-│ [ hold SPACE to talk ]        │  act    call_tool  ▇▇▇  88│  └─────────────┘  │
-│ [ or type… ⏎ ]                │  risk     routine  ▇▇▇▇ 97│  policy: tier_t1  │
-│  cols 1–5, rows 1–3           │  ckpt: english · 34 ms    │  reason: …        │
+│  ~~~ transcript ticker ~~~    │  tier       T1  ▇▇▇▇ 100 │  ┌─────────────┐  │
+│                               │  verify execute ▇▇▇▇  90 │  │  ALLOWED ✓  │  │  sticker
+│ [ hold SPACE to talk ]        │  reply       A  ▇▇▇▇  92 │  └─────────────┘  │
+│ [ or type… ⏎ ]                │  chip: keyword · 3 ms    │  policy: allow    │
+│  cols 1–5, rows 1–3           │  floor: T2               │  reason: …        │
 ├───────────────────────────────┼──────────────────────────┴───────────────────┤
-│ 04 TASK BRIEF (json, folded)  │ 05 TOOL CALL  set_volume {action:"down"}     │
-│ lang hi-IN · goal lower_volume│ 06 RESULT  ✓ "Volume 40% par"  origin: user  │
+│ 04 PLAN (think text per step) │ 05 TOOL CALL  run_command  argv [...]        │
+│ 1 Creating the folder.        │ 06 RESULT  ✓ "exit 0"  origin: command_output│
 ├───────────────────────────────┴──────────────────────────────────────────────┤
 │ 07 LOG  (virtualised list, newest first)          │ TRAINING  12 corrections │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -255,20 +257,19 @@ Single column in priority order: Cat Stage (240px) → Command bar (sticky botto
 
 ### 7.3 Pipeline Rail (01)
 
-11 pills in a wrapping row, connected by a 1px `--c-line` track. Each pill: icon + stage name (Urbanist 600 14px) + latency (Inter tabular 12px, muted).
+8 pills in a wrapping row: `listen think risk gate confirm execute result speak`, connected by a 1px `--c-line` track. Each pill: icon + stage name (Urbanist 600 14px) + latency (Inter tabular 12px, muted). A ReAct task may pass `think → … → result` several times; the pills show the latest pass and a small step counter (`step 2`).
 
-- States: `pending` (faint outline), `active` (filled with stage color at 14% alpha, border in stage color, glow, icon pulses once), `done` (border in stage color, check mark), `skipped` (dashed outline, strikethrough name, tooltip with reason e.g. "fast path: no args"), `failed` (chili).
-- Fast path visibly skips `compile` and `fill` — this is a demo moment, so the skipped pills get a small saffron italic tag "fast path".
+- States: `pending` (faint outline), `active` (filled with stage color at 14% alpha, border in stage color, glow, icon pulses once), `done` (border in stage color, check mark), `skipped` (dashed outline, e.g. `confirm` when the gate allowed), `failed` (chili, e.g. `gate` on deny).
 - Total task latency at the end in `--t-data-xl` Inter, catnip: e.g. `412 ms`.
 
 ### 7.4 Laya Decides (02) — the hero card
 
-One row per decision: label (12px uppercase muted) · choice (Urbanist 700 18px, paper) · bar · confidence % (Inter tabular 600 18px).
+One row per decision: label (12px uppercase muted) · choice (Urbanist 700 18px, paper) · bar · confidence % (Inter tabular 600 18px) · source chip.
 
-- Bar: 8px tall, `--r-pill`, track `--c-surface-2`, fill = stage color by act result: ≥ act threshold (0.85) catnip, 0.60–0.85 saffron, < 0.60 chili. Threshold ticks drawn on the track at 60% and 85% as 1px `--c-line-strong` marks with tiny labels on hover.
-- Rows: agent, tool, act_mode, request_risk, then verify / confirm_reply / task_done when they occur.
-- Footer: checkpoint chip (`english` / `multilingual`), router chip, Laya latency in ms. If router is `keyword`, show a saffron chip "keyword fallback" so nobody mistakes it for Laya.
-- Expand button "Top options" shows the top 3 choices with their confidences (from `payload.top`, if the router provides it).
+- **3 rows:** `tier` (T0–T3, from `risk.payload.tier`), `verify` (execute / wrong_tool / unclear), `reply` (A / B / C, only when a confirm happened).
+- Bar: 8px tall, `--r-pill`, track `--c-surface-2`. Fill: ≥ threshold catnip, within 0.2 below it saffron, lower chili. Threshold tick at **0.80 on tier** and **0.70 on verify** (1px `--c-line-strong`).
+- Source chip per row: `laya` (violet), `keyword` (saffron, so nobody mistakes it for Laya) or `shadow` (outline). When `payload.shadow` is present, a second thin bar under the tier row shows the shadow Laya tier and confidence.
+- Footer: utterance floor chip (`floor: T2`), checkpoint chip, latency in ms.
 - Correction affordance: each row has a small "wrong?" text button → a popover listing the valid choices → `POST /api/correction`. Counter in the Log card increments. This is the data flywheel shown live.
 
 ### 7.5 Verdict (03) — sticker
@@ -279,15 +280,15 @@ Big rotated sticker (`transform: rotate(-4deg)`), `--r-md`, filled with verdict 
 - confirm → saffron, "PUCHHNA PADEGA" / "NEEDS A YES" + question icon; card shows **Confirm** (catnip filled) and **Cancel** (outline) buttons that `POST /api/confirm`; 8 s countdown ring around the sticker.
 - deny → chili, "BLOCKED" + shield icon, slight 2-frame shake (disabled under reduced motion).
 
-Below the sticker: `policy` (code font), `reason` (body), and `corrective_context` in a muted inset if present. Provenance chip when origin ≠ user_utterance: e.g. "origin: web — data only", cyan outline.
+Below the sticker: `verdict.policy` (code font), `reason` (body), and `corrective_context` in a muted inset if present. Provenance chip when the last result origin ≠ user: e.g. "origin: screen — data only", cyan outline; chili "instruction-like text" chip when `provenance_flag` is true.
 
-### 7.6 Task Brief (04)
+### 7.6 Plan (04)
 
-Header row: lang chip (`hi-IN`), goal (code font), risk_hint chip (colored by risk), multi_step chip with step count. Body: pretty JSON in code font 13px, collapsed to 6 lines with "Show all" toggle. Steps rendered as a numbered list when multi_step.
+Header row: lang chip (from `listen`/`speak` payloads), step count. Body: numbered list, one line per `think` event, showing the assistant's English sentence (`payload.text`) and the tool it chose. The current step is highlighted in violet. The final reply (no tool call) is the last line in catnip.
 
 ### 7.7 Tool Call (05) and Result (06)
 
-- Call: `agent › tool` in Urbanist 700, risk tier chip (T0 cyan, T1 cyan, T2 saffron, T3 chili), args as key/value rows (code font), `decision_trace` as tiny inline bars.
+- Call: `tool` in Urbanist 700, risk tier chip (T0 cyan, T1 cyan, T2 saffron, T3 chili), args as key/value rows (code font), and the exact `argv` from the `execute` payload as a code line.
 - Result: ok icon (check/x), summary in `--t-h3`, origin chip, latency, collapsible `data`.
 
 ### 7.8 Log (07) + Training counter
@@ -300,7 +301,7 @@ On phones the confirm buttons move into a bottom sheet with a 50% black scrim, d
 
 ### 7.10 Icons
 
-Lucide (inline SVG, copy the paths you need into `ui/icons.js`; no CDN, no build step). Stroke 1.75, size tokens 16 / 20 / 24. Map: listen `mic`, compile `file-text`, route `git-fork`, select `mouse-pointer-click`, fill `braces`, verify `scan-search`, gate `shield`, confirm `circle-help`, execute `zap`, check `list-checks`, speak `volume-2`, deny `shield-x`, allow `shield-check`.
+Lucide (inline SVG, copy the paths you need into `ui/icons.js`; no CDN, no build step). Stroke 1.75, size tokens 16 / 20 / 24. Map: listen `mic`, think `brain`, risk `gauge`, gate `shield`, confirm `circle-help`, execute `zap`, result `list-checks`, speak `volume-2`, deny `shield-x`, allow `shield-check`.
 
 ---
 
@@ -360,14 +361,13 @@ The cat colors come from one CSS custom property set on the stage container: `--
 
 ---
 
-## 9. Micro-copy (Hinglish first, English when `brief.lang` starts with `en`)
+## 9. Micro-copy (Hinglish first, English when the `lang` from `listen`/`speak` starts with `en`)
 
 | Moment | Hinglish | English |
 | --- | --- | --- |
 | Empty log | "Abhi tak kuch nahi hua. Space dabao aur bolo." | "Nothing yet. Hold Space and speak." |
 | WebSocket down | "Connection gaya. Dobara jod rahe hain…" | "Connection lost. Reconnecting…" |
 | Low confidence | "Pakka nahi pata. Matlab {A} ya {B}?" | "Not sure. Did you mean {A} or {B}?" |
-| Fast path tag | "fast path" | "fast path" |
 | Keyword fallback chip | "keyword fallback" | "keyword fallback" |
 | Correction thanks | "Shukriya, yaad rakhenge." | "Thanks, logged for training." |
 
@@ -397,7 +397,9 @@ ui/
   tokens.css      sections 2–5 of this file verbatim
   app.css         layout + components
   app.js          WebSocket client, state store, renderers (ES modules, no build)
+  audio.js        mic capture (16 kHz int16 frames), TTS playback, barge-in
   icons.js        Lucide paths used (exported as strings)
+  cat.svg         the cat (section 8), also inlined in index.html
   fonts/          copied font files
 ```
 

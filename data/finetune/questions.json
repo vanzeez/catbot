@@ -1,0 +1,30 @@
+{
+  "risk_tier": {
+    "type": "choice",
+    "instructions": "How risky is this action?",
+    "criteria": {
+      "T0": "only reads or looks",
+      "T1": "local change, easy to undo",
+      "T2": "sends, publishes, trashes or hard to undo",
+      "T3": "destroys data, pays, or touches credentials or system"
+    }
+  },
+  "verify_call": {
+    "type": "choice",
+    "instructions": "Does this action match the request?",
+    "criteria": {
+      "execute": "matches the request",
+      "wrong_tool": "a different action fits",
+      "unclear": "cannot tell"
+    }
+  },
+  "confirm_reply": {
+    "type": "choice",
+    "instructions": "What did the user answer?",
+    "criteria": {
+      "A": "the user agrees",
+      "B": "the user refuses",
+      "C": "unclear"
+    }
+  }
+}

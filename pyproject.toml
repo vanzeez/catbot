@@ -1,0 +1,50 @@
+[project]
+name = "catbot"
+version = "0.2.0"
+description = "Voice-driven desktop agent: Sarvam ReAct loop, Laya gate, Failproof reporting"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.7",
+  "pyyaml",
+  "python-dotenv",
+  "httpx",
+  "tzdata",
+  "sarvamai==0.1.41",
+  "failproofai-sdk>=0.0.1b6",
+  "tavily-python",
+  "fastapi",
+  "uvicorn[standard]",
+  "rich",
+  "mss",
+  "pillow",
+  "rapidocr-onnxruntime",
+  "numpy",
+]
+
+[project.optional-dependencies]
+win32 = ["pycaw", "comtypes"]
+laya = ["laya==0.4.18"]
+dev = ["pytest", "pytest-asyncio", "ruff"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["catbot*"]
+
+[tool.setuptools.package-data]
+catbot = ["decide/*.yaml", "decide/*.json", "ui/**/*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["data/cache", "electron/node_modules", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

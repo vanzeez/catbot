@@ -1,0 +1,6 @@
+tier_conf: 0.80
+verify_conf: 0.70
+max_steps: 8
+max_wall_s: 60
+max_confirms: 1
+confirm_timeout_s: 8
