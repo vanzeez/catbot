@@ -222,3 +222,18 @@ dialog { background: var(--c-surface-1); color: var(--c-paper); border: 1px soli
 dialog::backdrop { background: rgba(0,0,0,.6); }
 kbd { font-family: var(--font-code); background: var(--c-surface-2); border-radius: 6px; padding: 2px 6px; }
 .icon { vertical-align: -3px; }
+
+/* wake word + meow bubble */
+.wake-row { width: 100%; display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); text-align: left; position: relative; }
+.wake { min-height: 44px; padding: 0 var(--s-4); border-radius: var(--r-pill); border: 1px solid var(--c-line-strong);
+  background: var(--c-surface-2); font-weight: 700; white-space: nowrap; }
+.wake[aria-pressed="true"] { border-color: var(--c-magenta); color: var(--c-magenta); box-shadow: var(--glow-magenta); }
+.wake-note { margin: 0; font: italic 600 var(--t-small)/1.4 var(--font-ui); color: var(--c-muted); }
+.meow-bubble { position: absolute; top: 4%; right: -2%; z-index: var(--z-card); margin: 0;
+  background: var(--c-paper); color: var(--c-on-accent); font: italic 800 20px/1 var(--font-ui);
+  padding: var(--s-2) var(--s-4); border-radius: var(--r-lg) var(--r-lg) var(--r-lg) var(--r-sm);
+  transform: rotate(4deg); animation: stick var(--d-slow) var(--ease-spring); }
+.meow-bubble[data-kind="angry"] { background: var(--c-chili); }
+.meow-bubble[data-kind="question"], .meow-bubble[data-kind="chirp"] { background: var(--c-saffron); }
+.meow-bubble[data-kind="happy"] { background: var(--c-catnip); }
+@media (max-width: 767px) { .wake-row { flex-direction: column; align-items: stretch; } .wake { white-space: normal; } }

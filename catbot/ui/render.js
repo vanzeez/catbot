@@ -22,7 +22,7 @@ export function renderCat(state, sub, lang, color) {
   cat.setAttribute("aria-label", `Catbot is ${state}`);
   $("stage").style.setProperty("--stage-color", v(color));
   $("headline").textContent = HEAD[state][String(lang || "hi").startsWith("en") ? 1 : 0];
-  $("subline").textContent = sub || (state === "sleeping" ? "hold Space to wake me" : "");
+  $("subline").textContent = sub || (state === "sleeping" ? "say “meow” to wake me" : "");
 }
 
 export function renderRail(view) {

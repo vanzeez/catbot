@@ -24,7 +24,9 @@ function pythonPath() {
 function startSidecar() {
   const extra = (process.env.CATBOT_SIDECAR_ARGS || "").split(" ").filter(Boolean);  // e.g. "--fake"
   const args = ["-m", "catbot", "--serve", "--voice", ...extra];
-  sidecar = spawn(pythonPath(), args, { cwd: REPO, env: { ...process.env, CATBOT_PORT: String(PORT) } });
+  // Drop the npm_* variables `npm start` adds: nvm in the user's shell profile warns about them.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^npm_/i.test(k)));
+  sidecar = spawn(pythonPath(), args, { cwd: REPO, env: { ...env, CATBOT_PORT: String(PORT) } });
   sidecar.stdout.on("data", (d) => process.stdout.write(`[sidecar] ${d}`));
   sidecar.stderr.on("data", (d) => process.stdout.write(`[sidecar] ${d}`));
   sidecar.on("exit", (code) => { console.log(`[sidecar] exited ${code}`); sidecar = null; });
@@ -58,7 +60,10 @@ async function createWindow() {
   if (process.platform === "darwin") await systemPreferences.askForMediaAccess("microphone");
   win = new BrowserWindow({
     width: 1440, height: 900, minWidth: 1024, minHeight: 700, backgroundColor: "#0B0A10",
-    title: "Catbot", webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true },
+    title: "Catbot", webPreferences: {
+      preload: path.join(__dirname, "preload.js"), contextIsolation: true,
+      autoplayPolicy: "no-user-gesture-required",  // meow sounds and replies without a click first
+    },
   });
   // Release detection only works while the window has focus; otherwise the hotkey toggles.
   win.webContents.on("before-input-event", (_e, input) => {

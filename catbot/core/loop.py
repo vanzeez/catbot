@@ -25,6 +25,7 @@ from catbot.core.events import EventBus
 from catbot.core.loop_util import Stop, parse_args, pick_request_en, small_result
 from catbot.core.prompts import system_prompt
 from catbot.core.store import Store
+from catbot.core.wake import split_wake
 from catbot.decide.keyword_gate import utterance_tier
 from catbot.decide.questions import risk_state
 from catbot.integrations.sarvam import LLMToolCall, SarvamLLM
@@ -69,7 +70,13 @@ class Loop:
     async def handle(
         self, utterance: str, *, lang: str | None = None, task_id: str | None = None
     ) -> TaskOutcome:
-        task_id, lang = task_id or uuid.uuid4().hex[:8], lang or self.s.reply_lang
+        task_id = task_id or uuid.uuid4().hex[:8]
+        lang = (lang or self.s.reply_lang) if self.s.match_user_lang else self.s.reply_lang
+        woke, rest = split_wake(utterance)
+        if woke:  # "meow, volume kam karo" -> "volume kam karo"; a bare "meow" just greets
+            if not rest:
+                return await self._greet(task_id, lang)
+            utterance = rest
         t0 = time.monotonic()
         self.store.add_task(task_id, utterance, lang)
         out = TaskOutcome(task_id=task_id, ok=False, spoken="")
@@ -96,6 +103,14 @@ class Loop:
         self.store.finish_task(task_id, out.ok, out.stopped_by, out.spoken, ms)
         return out
 
+    async def _greet(self, task_id: str, lang: str) -> TaskOutcome:
+        text = messages.reason_text("greet", lang)
+        self.store.add_task(task_id, "meow", lang)
+        await self._speak(task_id, text, lang)
+        self.bus.emit(task_id, "done", latency_ms=0, ok=True, stopped_by=None, steps=0)
+        self.store.finish_task(task_id, True, None, text, 0)
+        return TaskOutcome(task_id=task_id, ok=True, spoken=text)
+
     async def _run(
         self, task_id: str, utterance: str, lang: str, t0: float, results: list[ToolResult]
     ) -> str:
@@ -104,7 +119,10 @@ class Loop:
         self.bus.emit(task_id, "risk", utterance_floor=floor, source=self.gate.name)
         cwd = str(self.s.shell_cwd)
         msgs: list[dict[str, Any]] = [
-            {"role": "system", "content": system_prompt(self.s.os_name, cwd)},
+            {
+                "role": "system",
+                "content": system_prompt(self.s.os_name, cwd, english=not self.s.match_user_lang),
+            },
             {"role": "user", "content": utterance},
         ]
         st: dict[str, Any] = {

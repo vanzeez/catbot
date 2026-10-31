@@ -46,6 +46,7 @@ REASONS: dict[str, dict[str, str]] = {
         "ta": "பாதுகாப்பு கொள்கை இதைத் தடுத்தது.",
     },
     "done": {"en": "Done.", "hi": "Ho gaya.", "ta": "முடிந்தது."},
+    "greet": {"en": "Meow! I'm listening.", "hi": "Meow! Boliye.", "ta": "மியாவ்! சொல்லுங்கள்."},
     "error": {
         "en": "Something went wrong, so I stopped.",
         "hi": "Kuch gadbad ho gayi, maine rok diya.",

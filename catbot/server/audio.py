@@ -14,6 +14,7 @@ from catbot.config import Settings
 from catbot.core.confirm import ServerConfirm
 from catbot.core.events import EventBus
 from catbot.integrations.sarvam_audio import FakeStt, SarvamStt, SttSession, synthesize
+from catbot.server.wake import WakeListener, WakeRouter
 
 log = logging.getLogger("catbot.server.audio")
 
@@ -77,13 +78,45 @@ async def audio_socket(
     confirm: ServerConfirm,
     start_task: Any,
 ) -> None:
+    """PTT turns ({type: ptt}) and always-on wake word mode ({type: wake, action: on|off})."""
     await ws.accept()
     hub.sockets.add(ws)
     session: SttSession | None = None
+    wake: WakeListener | None = None
     turn = "voice"
+    live = settings.has_sarvam and not settings.fakes
 
     def partial(text: str, lang: str | None) -> None:
         bus.emit(turn, "listen", partial=text, lang=lang)
+
+    def reply_lang(detected: str | None) -> str:
+        if settings.match_user_lang and detected and detected != "auto":
+            return detected
+        return settings.reply_lang
+
+    async def ack() -> None:  # bare "meow": chirp and listen for the command
+        bus.emit(
+            turn, "listen", partial="Meow? I'm listening…", lang=settings.reply_lang, wake="armed"
+        )
+        with contextlib.suppress(Exception):
+            await ws.send_text(json.dumps({"type": "wake_ack"}))
+
+    router = WakeRouter(
+        has_confirm=lambda: confirm.has_pending,
+        resolve_confirm=confirm.resolve_any,
+        start_task=start_task,
+        ack=ack,
+        reply_lang=settings.reply_lang,
+    )
+
+    async def on_wake_final(text: str) -> None:
+        outcome = await router.on_final(text)
+        if outcome in ("command", "confirm"):  # ambient speech is never shown or stored
+            bus.emit(turn, "listen", final=text, lang=settings.reply_lang, wake=outcome)
+
+    def wake_partial(text: str) -> None:
+        if router.armed and text:
+            bus.emit(turn, "listen", partial=text, lang=settings.reply_lang)
 
     try:
         while True:
@@ -93,13 +126,32 @@ async def audio_socket(
             if msg.get("bytes") is not None:
                 if session is not None:
                     await session.feed(msg["bytes"])
+                elif wake is not None:
+                    await wake.feed(msg["bytes"])
                 continue
             data = json.loads(msg.get("text") or "{}")
-            if data.get("type") != "ptt":
-                continue
-            if data.get("action") == "start":
+            kind, action = data.get("type"), data.get("action")
+            if kind == "wake" and action == "on" and wake is None:
+                if live:
+                    wake = WakeListener(
+                        settings.sarvam_api_key.get_secret_value(),
+                        settings.stt_language,
+                        settings.stt_model,
+                        on_wake_final,
+                        wake_partial,
+                    )
+                    await wake.start()
+                await ws.send_text(json.dumps({"type": "wake_state", "on": True, "live": live}))
+            elif kind == "wake" and action == "off":
+                if wake is not None:
+                    await wake.stop()
+                    wake = None
+                await ws.send_text(json.dumps({"type": "wake_state", "on": False, "live": live}))
+            elif kind == "wake_text":  # fakes / tests: simulate a heard sentence
+                await on_wake_final(str(data.get("text", "")))
+            elif kind == "ptt" and action == "start":
                 hub.barge_in()
-                if settings.has_sarvam and not settings.fakes:
+                if live:
                     session = SarvamStt(
                         settings.sarvam_api_key.get_secret_value(),
                         settings.stt_language,
@@ -117,12 +169,10 @@ async def audio_socket(
                 except Exception as exc:  # noqa: BLE001
                     bus.emit(turn, "error", message=f"stt start failed: {exc}")
                     session = None
-            elif data.get("action") == "stop" and session is not None:
+            elif kind == "ptt" and action == "stop" and session is not None:
                 text, lang = await session.stop()
                 session = None
-                # FINDINGS: Saaras tags Hinglish as en-IN; this product is Hinglish-first, so en-IN
-                # replies use REPLY_LANG (Hindi voice, Hinglish copy). ta-IN and hi-IN pass through.
-                lang = lang if lang and lang not in ("auto", "en-IN") else settings.reply_lang
+                lang = reply_lang(lang)
                 bus.emit(turn, "listen", final=text, lang=lang)
                 if not text:
                     continue
@@ -137,3 +187,5 @@ async def audio_socket(
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.stop()
+        if wake is not None:
+            await wake.stop()

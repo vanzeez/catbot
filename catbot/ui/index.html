@@ -22,6 +22,7 @@
   <section class="card stage" id="stage" aria-label="Catbot">
     <div class="aura" aria-hidden="true"></div>
     <div class="cat-wrap">
+      <p class="meow-bubble" id="meow-bubble" aria-live="polite" hidden></p>
 <svg id="cat" data-state="sleeping" viewBox="0 0 320 320" role="img" aria-label="Catbot is sleeping">
   <g class="wave-ring"><circle cx="160" cy="160" r="120" fill="none"/><circle cx="160" cy="160" r="145" fill="none"/></g>
   <g class="tail"><path d="M220 250 C 280 250, 290 180, 250 160" fill="none" stroke-width="14" stroke-linecap="round"/></g>
@@ -47,15 +48,19 @@
 </svg>
     </div>
     <p class="headline" id="headline">Zzz…</p>
-    <p class="subline" id="subline">hold Space to wake me</p>
+    <p class="subline" id="subline">say “meow” to wake me</p>
     <div class="ticker" id="ticker"><span id="partial"></span><span id="final" aria-live="polite"></span></div>
     <button class="ptt" id="ptt" aria-label="Hold to talk">
       <span class="ptt-icon"></span><span class="ptt-label">Hold Space to talk</span>
       <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
     </button>
+    <div class="wake-row">
+      <button class="wake" id="wake-btn" aria-pressed="true">Wake word “meow”: on</button>
+      <p class="wake-note" id="wake-note">Listening for “meow”… then say your command.</p>
+    </div>
     <form id="text-form" class="text-form">
       <label for="text-in">Type a command</label>
-      <input id="text-in" autocomplete="off" placeholder="or type… volume kam karo">
+      <input id="text-in" autocomplete="off" placeholder="or type… turn the volume down">
     </form>
   </section>
 
@@ -116,7 +121,7 @@
 </div>
 <div class="popover" id="popover" hidden role="menu"></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<dialog id="help"><h2>Shortcuts</h2><ul><li><kbd>Space</kbd> hold to talk (outside text fields)</li><li><kbd>Ctrl/Cmd+Alt+Space</kbd> talk from anywhere (desktop app)</li><li><kbd>/</kbd> focus the text box</li><li><kbd>Y</kbd> / <kbd>N</kbd> answer a confirmation</li></ul><button id="help-close">Close</button></dialog>
+<dialog id="help"><h2>Shortcuts</h2><ul><li>Say <kbd>meow</kbd>, then your command (or "meow, turn the volume down")</li><li><kbd>Space</kbd> hold to talk (outside text fields)</li><li><kbd>Ctrl/Cmd+Alt+Space</kbd> talk from anywhere (desktop app)</li><li><kbd>/</kbd> focus the text box</li><li><kbd>Y</kbd> / <kbd>N</kbd> answer a confirmation</li></ul><button id="help-close">Close</button></dialog>
 <script type="module" src="/ui/app.js"></script>
 </body>
 </html>

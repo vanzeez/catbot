@@ -1,5 +1,6 @@
 // Catbot UI: WebSocket client (reconnect), one store keyed by task id, renderers, PTT, corrections.
 import { Voice } from "./audio.js";
+import { MEOWS } from "./meow.js";
 import { CHOICES, COLOR, STAGES, logLine, renderCall, renderCat, renderLaya, renderPlan,
   renderRail, renderResult, renderVerdict } from "./render.js";
 
@@ -70,6 +71,7 @@ function onEvent(e) {
       renderCat("blocked", g.reason, S.lang, COLOR.deny);
     }
   } else if (e.stage === "confirm" && p.question) {
+    sound(e, "question");
     v.confirm = { question: p.question, until: Date.now() + 8000 };
     setRail(v, "confirm", "active");
     renderCat("asking", p.question, S.lang, COLOR.confirm);
@@ -99,6 +101,8 @@ function onEvent(e) {
     closeSheet();
     const speak = S.lines.find((x) => x.e.task_id === e.task_id && x.e.stage === "speak");
     const said = speak ? speak.e.payload.text : "";
+    sound(e, p.ok ? (p.steps ? "happy" : "chat")
+      : p.stopped_by === "user_cancel" ? "sad" : p.stopped_by === "error" ? "error" : "angry", true);
     if (p.ok) renderCat("done", said, S.lang, COLOR.done);
     else if (p.stopped_by === "user_cancel") renderCat("sleeping", said, S.lang, COLOR.idle);
     else renderCat("blocked", said, S.lang, COLOR.deny);
@@ -115,6 +119,22 @@ function once(key, data, fn) {  // re-render a card only when its data changed (
   sigs[key] = sig;
   fn();
 }
+// ---- meow sounds: one per outcome, only for live events (not the replay on connect) ----------
+function sound(e, kind, afterSpeech = false) {
+  const age = Date.now() - Date.parse(e.ts || "");
+  if (!(age < 5000) || typeof voice === "undefined") return;
+  voice.meow(kind, { afterSpeech }).then((delayMs) => setTimeout(() => bubble(kind), delayMs))
+    .catch(() => bubble(kind));
+}
+function bubble(kind) {
+  const b = $("meow-bubble");
+  b.textContent = MEOWS[kind]?.text || "meow";
+  b.dataset.kind = kind;
+  b.hidden = false;
+  clearTimeout(bubble.t);
+  bubble.t = setTimeout(() => { b.hidden = true; }, 1800);
+}
+
 function renderAll() {
   const v = view();
   renderRail(v);
@@ -227,7 +247,33 @@ $("text-form").onsubmit = async (ev) => {
   $("text-in").value = "";
 };
 const level = (l) => { $("cat").style.setProperty("--level", l); $("ptt").style.setProperty("--level", l); };
-const voice = new Voice({ onLevel: level });
+const voice = new Voice({
+  onLevel: level,
+  onWakeAck: () => {                    // bare "meow": chirp, then listen for the command
+    voice.meow("chirp").then((ms) => setTimeout(() => bubble("chirp"), ms));
+    renderCat("listening", "Meow? I'm listening…", S.lang, COLOR.listen);
+  },
+  onWakeState: (d) => setWakeUi(d.on, d.live),
+});
+// ---- wake word toggle (remembered per browser) -------------------------------------------------
+let wakeWanted = true;
+try { wakeWanted = localStorage.getItem("catbot.wake") !== "off"; } catch (_) { /* storage blocked */ }
+function setWakeUi(on, live = true) {
+  $("wake-btn").setAttribute("aria-pressed", String(on));
+  $("wake-btn").textContent = on ? "Wake word “meow”: on" : "Wake word “meow”: off";
+  $("wake-note").textContent = !on ? "Hold Space to talk instead."
+    : live ? "Listening for “meow”… then say your command." : "Fake mode: wake word needs the Sarvam key.";
+}
+async function applyWake(on) {
+  wakeWanted = on;
+  try { localStorage.setItem("catbot.wake", on ? "on" : "off"); } catch (_) { /* storage blocked */ }
+  try { await voice.setWake(on); setWakeUi(on); }
+  catch (err) { setWakeUi(false); $("wake-note").textContent = `Mic blocked: ${err.message}`; }
+}
+$("wake-btn").onclick = () => applyWake(!wakeWanted);
+// Browsers need a click before audio can start; Electron does not.
+applyWake(wakeWanted).catch(() => {});
+addEventListener("pointerdown", () => voice.ensureCtx().catch(() => {}), { once: true });
 const down = () => { $("ptt").classList.add("on"); voice.start().catch((err) => toast(`mic: ${err.message}`)); };
 const up = () => { $("ptt").classList.remove("on"); voice.stop(); };
 $("ptt").addEventListener("pointerdown", (e) => { e.preventDefault(); down(); });

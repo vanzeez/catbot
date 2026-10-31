@@ -22,8 +22,15 @@ def shell_argv(command: str, os_name: str | None = None) -> list[str]:
     return ["/bin/zsh", "-o", "nonomatch", "-lc", command]
 
 
+_LAUNCHER_ENV = re.compile(r"^(npm_|NPM_)")  # set by `npm start`; nvm warns about npm_config_prefix
+
+
 def scrubbed_env() -> dict[str, str]:
-    return {k: v for k, v in os.environ.items() if not _SECRET_ENV.search(k)}
+    return {
+        k: v
+        for k, v in os.environ.items()
+        if not _SECRET_ENV.search(k) and not _LAUNCHER_ENV.match(k)
+    }
 
 
 def resolve_cwd(cwd: str | None, default: Path) -> Path:

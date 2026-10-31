@@ -36,7 +36,8 @@ class Settings(BaseModel):
     stt_model: str = "saaras:v3-realtime"
     tts_model: str = ""
     tts_speaker: str = ""
-    reply_lang: str = "hi-IN"
+    reply_lang: str = "en-IN"
+    match_user_lang: bool = False  # True: reply in the language STT detected
     shell_cwd: Path = Path("~/Desktop/CatbotDemo").expanduser()
     shadow: bool = False
     fakes: bool = False
@@ -85,7 +86,8 @@ def load_settings(env_file: Path | None = None, **overrides: object) -> Settings
         "stt_model": _env("STT_MODEL", "saaras:v3-realtime") or "saaras:v3-realtime",
         "tts_model": _env("TTS_MODEL"),
         "tts_speaker": _env("TTS_SPEAKER"),
-        "reply_lang": _env("REPLY_LANG", "hi-IN") or "hi-IN",
+        "reply_lang": _env("REPLY_LANG", "en-IN") or "en-IN",
+        "match_user_lang": _bool("MATCH_USER_LANG"),
         "shell_cwd": Path(_env("SHELL_CWD", "~/Desktop/CatbotDemo")).expanduser(),
         "shadow": _bool("SHADOW"),
         "fakes": _bool("CATBOT_FAKES"),
