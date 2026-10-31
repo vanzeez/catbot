@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catbot</title>
+<link rel="preload" href="/ui/fonts/gloock.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/ui/fonts/urbanist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/ui/tokens.css">
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+<a class="skip" href="#laya">Skip to decisions</a>
+<header class="topbar">
+  <h1 class="wordmark">catbot<span>.</span></h1>
+  <span class="live" id="live"><i></i><span id="live-text">connecting…</span></span>
+  <div class="chips" id="chips"></div>
+  <button class="icon-btn" id="help-btn" aria-label="Keyboard shortcuts">?</button>
+</header>
+
+<main class="grid">
+  <section class="card stage" id="stage" aria-label="Catbot">
+    <div class="aura" aria-hidden="true"></div>
+    <div class="cat-wrap">
+      <p class="meow-bubble" id="meow-bubble" aria-live="polite" hidden></p>
+<svg id="cat" data-state="sleeping" viewBox="0 0 320 320" role="img" aria-label="Catbot is sleeping">
+  <g class="wave-ring"><circle cx="160" cy="160" r="120" fill="none"/><circle cx="160" cy="160" r="145" fill="none"/></g>
+  <g class="tail"><path d="M220 250 C 280 250, 290 180, 250 160" fill="none" stroke-width="14" stroke-linecap="round"/></g>
+  <g class="body"><ellipse cx="160" cy="245" rx="78" ry="58"/></g>
+  <g class="head">
+    <g class="ears">
+      <g class="ear ear-l"><path d="M100 120 L112 60 L148 100 Z"/><path class="ear-in" d="M110 108 L116 76 L136 98 Z"/></g>
+      <g class="ear ear-r"><path d="M220 120 L208 60 L172 100 Z"/><path class="ear-in" d="M210 108 L204 76 L184 98 Z"/></g>
+    </g>
+    <circle class="face" cx="160" cy="140" r="64"/>
+    <g class="eyes-open"><ellipse cx="136" cy="138" rx="9" ry="12"/><ellipse cx="184" cy="138" rx="9" ry="12"/>
+      <circle class="pupil" cx="136" cy="140" r="4"/><circle class="pupil" cx="184" cy="140" r="4"/></g>
+    <g class="eyes-closed"><path d="M126 140 q10 8 20 0"/><path d="M174 140 q10 8 20 0"/></g>
+    <g class="eyes-narrow"><path d="M126 138 h20"/><path d="M174 138 h20"/></g>
+    <g class="eyes-happy"><path d="M126 142 q10 -10 20 0"/><path d="M174 142 q10 -10 20 0"/></g>
+    <path class="nose" d="M154 160 h12 l-6 7 z"/>
+    <g class="whiskers"><path d="M110 165 h-34"/><path d="M110 172 l-32 6"/><path d="M210 165 h34"/><path d="M210 172 l32 6"/></g>
+  </g>
+  <g class="orbit"><circle cx="160" cy="62" r="5"/><circle cx="232" cy="140" r="5"/><circle cx="88" cy="140" r="5"/></g>
+  <g class="zzz"><text x="222" y="78">z</text><text x="240" y="56">z</text><text x="262" y="34">Z</text></g>
+  <g class="paw-stop"><ellipse cx="240" cy="200" rx="22" ry="26"/><path d="M228 186 v-8 M240 182 v-10 M252 186 v-8"/></g>
+  <g class="sparkle"><path d="M70 90 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M262 96 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M60 210 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M270 222 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
+</svg>
+    </div>
+    <p class="headline" id="headline">Zzz…</p>
+    <p class="subline" id="subline">say “meow” to wake me</p>
+    <div class="ticker" id="ticker"><span id="partial"></span><span id="final" aria-live="polite"></span></div>
+    <button class="ptt" id="ptt" aria-label="Hold to talk">
+      <span class="ptt-icon"></span><span class="ptt-label">Hold Space to talk</span>
+      <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+    </button>
+    <div class="wake-row">
+      <button class="wake" id="wake-btn" aria-pressed="true">Wake word “meow”: on</button>
+      <p class="wake-note" id="wake-note">Listening for “meow”… then say your command.</p>
+    </div>
+    <form id="text-form" class="text-form">
+      <label for="text-in">Type a command</label>
+      <input id="text-in" autocomplete="off" placeholder="or type… turn the volume down">
+    </form>
+  </section>
+
+  <section class="card rail-card" aria-labelledby="h-rail">
+    <h2 id="h-rail"><span class="num">01</span> Pipeline</h2>
+    <ol class="rail" id="rail"></ol>
+    <div class="total"><span id="step-count"></span><span id="total-ms">—</span></div>
+  </section>
+
+  <section class="card laya-card" id="laya" aria-labelledby="h-laya" tabindex="-1">
+    <h2 id="h-laya"><span class="num">02</span> Laya decides</h2>
+    <div id="laya-rows" class="laya-rows"><p class="empty">Abhi tak kuch nahi hua.</p></div>
+    <div class="laya-foot" id="laya-foot"></div>
+  </section>
+
+  <section class="card verdict-card" aria-labelledby="h-verdict">
+    <h2 id="h-verdict"><span class="num">03</span> Verdict</h2>
+    <div id="verdict" aria-live="polite"><p class="empty">—</p></div>
+  </section>
+
+  <section class="card plan-card" aria-labelledby="h-plan">
+    <h2 id="h-plan"><span class="num">04</span> Plan</h2>
+    <div class="plan-head" id="plan-head"></div>
+    <ol id="plan" class="plan"></ol>
+  </section>
+
+  <section class="card call-card" aria-labelledby="h-call">
+    <h2 id="h-call"><span class="num">05</span> Tool call</h2>
+    <div id="call"><p class="empty">—</p></div>
+  </section>
+
+  <section class="card result-card" aria-labelledby="h-result">
+    <h2 id="h-result"><span class="num">06</span> Result</h2>
+    <div id="result"><p class="empty">—</p></div>
+  </section>
+
+  <section class="card log-card" aria-labelledby="h-log">
+    <div class="log-head">
+      <h2 id="h-log"><span class="num">07</span> Log</h2>
+      <div class="filters" id="filters" role="group" aria-label="Log filter">
+        <button data-f="all" aria-pressed="true">all</button>
+        <button data-f="decisions" aria-pressed="false">decisions</button>
+        <button data-f="gate" aria-pressed="false">gate</button>
+        <button data-f="errors" aria-pressed="false">errors</button>
+      </div>
+      <div class="training"><span id="corrections">0</span> corrections logged for training</div>
+    </div>
+    <ol class="log" id="log"><li class="empty">Abhi tak kuch nahi hua. Space dabao aur bolo.</li></ol>
+  </section>
+</main>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet-body" role="dialog" aria-modal="true" aria-labelledby="sheet-q">
+    <p id="sheet-q"></p>
+    <div class="sheet-actions"><button class="btn-yes" data-reply="haan">Haan, karo</button><button class="btn-no" data-reply="nahi">Cancel</button></div>
+  </div>
+</div>
+<div class="popover" id="popover" hidden role="menu"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<dialog id="help"><h2>Shortcuts</h2><ul><li>Say <kbd>meow</kbd>, then your command (or "meow, turn the volume down")</li><li><kbd>Space</kbd> hold to talk (outside text fields)</li><li><kbd>Ctrl/Cmd+Alt+Space</kbd> talk from anywhere (desktop app)</li><li><kbd>/</kbd> focus the text box</li><li><kbd>Y</kbd> / <kbd>N</kbd> answer a confirmation</li></ul><button id="help-close">Close</button></dialog>
+<script type="module" src="/ui/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Catbot audio probe</title>
+<style>body{font:15px system-ui;background:#0B0A10;color:#eee;padding:24px;max-width:900px}
+button{font-size:18px;padding:14px 28px;border-radius:12px;border:0;background:#7c5cff;color:#fff}
+button.on{background:#e8437a}input{font-size:16px;padding:10px;width:60%}
+#log{white-space:pre-wrap;font:12px ui-monospace,monospace;background:#16141f;padding:12px;margin-top:16px;max-height:60vh;overflow:auto}
+#lvl{display:inline-block;height:10px;background:#3ddc97;width:0;vertical-align:middle;margin-left:12px}</style></head>
+<body><h2>Catbot audio probe</h2>
+<button id="ptt">Hold to talk (or Space)</button><span id="lvl"></span>
+<p><input id="txt" placeholder="type an utterance, Enter"> <input id="fake" placeholder="fake transcript (no key)" style="width:30%"></p>
+<p><button id="yes">Haan</button> <button id="no">Nahi</button></p>
+<div id="log"></div>
+<script type="module">
+import { Voice } from "/ui/audio.js";
+const $ = (id) => document.getElementById(id), log = (s) => { $("log").textContent = s + "\n" + $("log").textContent; };
+let lastTask = null;
+const voice = new Voice({ onTts: (d) => log(`tts ${d.mime} ${d.tts_ms} ms`), onLevel: (l) => $("lvl").style.width = `${Math.round(l * 200)}px`, onState: (s) => log(`audio ws ${s}`) });
+const ev = new WebSocket(`ws://${location.host}/events`);
+ev.onmessage = (m) => { const e = JSON.parse(m.data); if (e.stage === "confirm" && e.payload.question) lastTask = e.task_id; log(`${e.stage.padEnd(8)} ${e.task_id} ${JSON.stringify(e.payload).slice(0, 220)}`); };
+const down = () => { $("ptt").classList.add("on"); voice.start({ fake_text: $("fake").value || undefined }); };
+const up = () => { $("ptt").classList.remove("on"); voice.stop(); };
+$("ptt").onpointerdown = down; $("ptt").onpointerup = up; $("ptt").onpointerleave = up;
+addEventListener("keydown", (e) => { if (e.code === "Space" && e.target.tagName !== "INPUT" && !e.repeat) { e.preventDefault(); down(); } });
+addEventListener("keyup", (e) => { if (e.code === "Space" && e.target.tagName !== "INPUT") up(); });
+$("txt").onkeydown = async (e) => { if (e.key !== "Enter") return; const r = await fetch("/api/text", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ utterance: $("txt").value }) }); log(`POST /api/text -> ${JSON.stringify(await r.json())}`); };
+const reply = (r) => fetch("/api/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task_id: lastTask, reply: r }) }).then((x) => x.json()).then((j) => log(`confirm ${r} -> ${JSON.stringify(j)}`));
+$("yes").onclick = () => reply("haan"); $("no").onclick = () => reply("nahi");
+</script></body></html>
