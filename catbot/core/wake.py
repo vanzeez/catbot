@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import re
 
-# STT hears meow as "Now" in continuous mode, so "now" also wakes (demo trade-off). meow, meoww, miaow, miao, mew, myau, and Devanagari म्याऊं; "hey/ok meow" also wakes.
+# STT hears meow as "Now" in continuous mode, so "now" also wakes (demo trade-off).
+# Also: meow, miaow, miao, mew, myau, Devanagari म्याऊं; "hey/ok meow" wakes too.
 _WAKE_WORD = r"(?:now|m+e+o+w+|mi+a+o+w*|m+e+w+|mya+u+|म्या[ऊउ]ं?)"
 _WAKE = re.compile(
     rf"^\W*(?:(?:hey|hi|ok|okay|arre|oye)\W+)?{_WAKE_WORD}(?:\W+{_WAKE_WORD})*\b\W*",
