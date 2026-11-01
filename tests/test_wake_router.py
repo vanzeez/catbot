@@ -26,11 +26,13 @@ async def test_wake_with_command_runs_it():
     assert log["tasks"] == [("Turn the volume down.", "en-IN")]
 
 
-async def test_bare_meow_arms_then_next_sentence_runs():
+async def test_meow_stays_active_until_paused():
     r, log = router()
-    assert await r.on_final("Meow") == "armed" and log["acks"] == 1 and r.armed
+    assert await r.on_final("Meow") == "armed" and log["acks"] == 1 and r.mode == "active"
     assert await r.on_final("lock my screen") == "command"
-    assert log["tasks"] == [("lock my screen", "en-IN")] and not r.armed
+    assert await r.on_final("turn the volume down") == "command"  # still active, no meow needed
+    r.pause()
+    assert r.mode == "waiting" and await r.on_final("open notes") == "ignored"
 
 
 async def test_ambient_speech_ignored():

@@ -249,26 +249,33 @@ $("text-form").onsubmit = async (ev) => {
 const level = (l) => { $("cat").style.setProperty("--level", l); $("ptt").style.setProperty("--level", l); };
 const voice = new Voice({
   onLevel: level,
-  onWakeAck: () => {                    // bare "meow": chirp, then listen for the command
+  onWakeAck: () => {                    // "meow": chirp and stay active until paused
     voice.meow("chirp").then((ms) => setTimeout(() => bubble("chirp"), ms));
-    renderCat("listening", "Meow? I'm listening…", S.lang, COLOR.listen);
+    renderCat("listening", "Bol, sun raha hoon…", S.lang, COLOR.listen);
   },
-  onWakeState: (d) => setWakeUi(d.on, d.live),
+  onWakeState: (d) => setWakeUi(d.mode || (d.on ? "waiting" : "off"), d.live),
 });
-// ---- wake word toggle (remembered per browser) -------------------------------------------------
+// ---- listening: off -> waiting for "meow" -> active (every sentence is a command) -> pause ----
 let wakeWanted = true;
 try { wakeWanted = localStorage.getItem("catbot.wake") !== "off"; } catch (_) { /* storage blocked */ }
-function setWakeUi(on, live = true) {
-  $("wake-btn").setAttribute("aria-pressed", String(on));
-  $("wake-btn").textContent = on ? "Wake word “meow”: on" : "Wake word “meow”: off";
-  $("wake-note").textContent = !on ? "Hold Space to talk instead."
-    : live ? "Listening for “meow”… then say your command." : "Fake mode: wake word needs the Sarvam key.";
+const WAKE_NOTE = {
+  off: "Paused. Mic is off.",
+  waiting: "Say “meow” (or “Billu”) to start…",
+  active: "Listening — just talk. Pause when you're done.",
+};
+function setWakeUi(mode, live = true) {
+  const btn = $("wake-btn");
+  btn.dataset.mode = mode;
+  btn.setAttribute("aria-pressed", String(mode !== "off"));
+  btn.textContent = mode === "off" ? "Start listening" : "Pause listening";
+  $("wake-note").textContent = mode !== "off" && !live
+    ? "Fake mode: listening needs the Sarvam key." : WAKE_NOTE[mode];
 }
 async function applyWake(on) {
   wakeWanted = on;
   try { localStorage.setItem("catbot.wake", on ? "on" : "off"); } catch (_) { /* storage blocked */ }
-  try { await voice.setWake(on); setWakeUi(on); }
-  catch (err) { setWakeUi(false); $("wake-note").textContent = `Mic blocked: ${err.message}`; }
+  try { await voice.setWake(on); setWakeUi(on ? "waiting" : "off"); }
+  catch (err) { setWakeUi("off"); $("wake-note").textContent = `Mic blocked: ${err.message}`; }
 }
 $("wake-btn").onclick = () => applyWake(!wakeWanted);
 // Browsers need a click before audio can start; Electron does not.

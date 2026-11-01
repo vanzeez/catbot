@@ -7,14 +7,12 @@ import asyncio
 import base64
 import contextlib
 import logging
-import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
 from catbot.core.wake import split_wake
 
 log = logging.getLogger("catbot.wake")
-ARM_SECONDS = 10.0
 
 
 class WakeRouter:
@@ -31,11 +29,18 @@ class WakeRouter:
     ) -> None:
         self.has_confirm, self.resolve_confirm = has_confirm, resolve_confirm
         self.start_task, self.ack, self.reply_lang = start_task, ack, reply_lang
-        self.armed_until = 0.0
+        self.active = False  # after "meow": every sentence is a command until paused
 
     @property
-    def armed(self) -> bool:
-        return time.monotonic() < self.armed_until
+    def armed(self) -> bool:  # kept for callers: true while in active mode
+        return self.active
+
+    @property
+    def mode(self) -> str:
+        return "active" if self.active else "waiting"
+
+    def pause(self) -> None:
+        self.active = False
 
     async def on_final(self, text: str) -> str:
         """Returns what happened: confirm | command | armed | ignored."""
@@ -46,12 +51,12 @@ class WakeRouter:
             self.resolve_confirm(split_wake(text)[1] or text)
             return "confirm"
         woke, rest = split_wake(text)
-        if woke and not rest:
-            self.armed_until = time.monotonic() + ARM_SECONDS
+        if woke and not self.active:
+            self.active = True
             await self.ack()
-            return "armed"
-        if woke or self.armed:
-            self.armed_until = 0.0
+            if not rest:
+                return "armed"
+        if self.active:
             self.start_task(rest if woke else text, self.reply_lang)
             return "command"
         return "ignored"

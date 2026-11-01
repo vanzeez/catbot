@@ -96,10 +96,17 @@ async def audio_socket(
 
     async def ack() -> None:  # bare "meow": chirp and listen for the command
         bus.emit(
-            turn, "listen", partial="Meow? I'm listening…", lang=settings.reply_lang, wake="armed"
+            turn,
+            "listen",
+            partial="Meow! Bol, sun raha hoon…",
+            lang=settings.reply_lang,
+            wake="active",
         )
         with contextlib.suppress(Exception):
             await ws.send_text(json.dumps({"type": "wake_ack"}))
+            await ws.send_text(
+                json.dumps({"type": "wake_state", "on": True, "live": live, "mode": "active"})
+            )
 
     router = WakeRouter(
         has_confirm=lambda: confirm.has_pending,
@@ -141,12 +148,19 @@ async def audio_socket(
                         wake_partial,
                     )
                     await wake.start()
-                await ws.send_text(json.dumps({"type": "wake_state", "on": True, "live": live}))
+                await ws.send_text(
+                    json.dumps(
+                        {"type": "wake_state", "on": True, "live": live, "mode": router.mode}
+                    )
+                )
             elif kind == "wake" and action == "off":
                 if wake is not None:
                     await wake.stop()
                     wake = None
-                await ws.send_text(json.dumps({"type": "wake_state", "on": False, "live": live}))
+                router.pause()
+                await ws.send_text(
+                    json.dumps({"type": "wake_state", "on": False, "live": live, "mode": "off"})
+                )
             elif kind == "wake_text":  # fakes / tests: simulate a heard sentence
                 await on_wake_final(str(data.get("text", "")))
             elif kind == "ptt" and action == "start":

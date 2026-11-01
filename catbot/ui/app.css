@@ -227,7 +227,8 @@ kbd { font-family: var(--font-code); background: var(--c-surface-2); border-radi
 .wake-row { width: 100%; display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); text-align: left; position: relative; }
 .wake { min-height: 44px; padding: 0 var(--s-4); border-radius: var(--r-pill); border: 1px solid var(--c-line-strong);
   background: var(--c-surface-2); font-weight: 700; white-space: nowrap; }
-.wake[aria-pressed="true"] { border-color: var(--c-magenta); color: var(--c-magenta); box-shadow: var(--glow-magenta); }
+.wake[data-mode="waiting"] { border-color: var(--c-magenta); color: var(--c-magenta); }
+.wake[data-mode="active"] { border-color: var(--c-catnip); color: var(--c-catnip); box-shadow: var(--glow-catnip); }
 .wake-note { margin: 0; font: italic 600 var(--t-small)/1.4 var(--font-ui); color: var(--c-muted); }
 .meow-bubble { position: absolute; top: 4%; right: -2%; z-index: var(--z-card); margin: 0;
   background: var(--c-paper); color: var(--c-on-accent); font: italic 800 20px/1 var(--font-ui);

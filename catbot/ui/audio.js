@@ -101,7 +101,15 @@ export class Voice {
   async setWake(on) {
     this.wakeOn = on;
     if (on) await this.ensureMic();
+    else if (!this.talking) this.releaseMic();   // paused: mic fully off
     this.send({ type: "wake", action: on ? "on" : "off" });
+  }
+
+  releaseMic() {
+    if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+    if (this.mic) this.mic.disconnect();
+    if (this.node) this.node.disconnect();
+    this.stream = null; this.mic = null; this.node = null; this.ring = []; this.hang = 0;
   }
 
   async start(extra = {}) {
@@ -117,6 +125,7 @@ export class Voice {
     this.talking = false;
     this.send({ type: "ptt", action: "stop" });
     this.onLevel(0);
+    if (!this.wakeOn) this.releaseMic();         // push-to-talk while paused: mic off again
   }
 
   send(obj) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(obj)); }
