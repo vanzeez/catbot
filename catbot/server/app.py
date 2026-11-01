@@ -46,6 +46,15 @@ class CorrectionIn(BaseModel):
 
 def create_app(settings: Settings, *, voice: bool = True) -> FastAPI:
     app = FastAPI(title="Catbot")
+
+    @app.middleware("http")
+    async def no_stale_ui(request: Any, call_next: Any) -> Any:
+        """The UI changes often; make browsers and Electron re-check it on every load."""
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith("/ui/"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
     hub = AudioHub(settings)
     confirm = ServerConfirm(speak=hub.speak if voice else None)
     rt: Runtime = build(settings, confirm=confirm, speaker=HubSpeaker(hub))

@@ -3,7 +3,7 @@
 ## Before you record
 
 1. `python scripts/seed_demo.py`. It resets `~/Desktop/CatbotDemo` with `screenshot-old-1.png` … `screenshot-old-3.png`.
-2. `npm --prefix electron start`. Wait for the cat (about 15 s, including about 9 s to load Laya).
+2. `./scripts/start_catbot.sh` (not `npm start` from a terminal: macOS would give Catbot that terminal's mic permission). Wait for the cat (about 15 s, including about 9 s to load Laya).
 3. Check the top bar: `live` dot green, `gate: LAYA`, `ckpt: catbot-tuned`, `voice`.
 4. Set system volume to about 60 so line 1 is audible.
 5. Open Finder on `~/Desktop/CatbotDemo` beside the app window.

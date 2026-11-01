@@ -14,3 +14,4 @@ checkpoints/
 electron/node_modules/
 catbot/ui/fonts/*.zip
 .DS_Store
+data/catbot.log

@@ -67,8 +67,9 @@ macOS notes: `lock_screen` uses `pmset displaysleepnow`, which only locks if Sys
 ```bash
 python -m catbot --text "volume kam karo" --fake     # text mode, fake Sarvam and fake tools
 python -m catbot --serve --voice                     # server + UI at http://127.0.0.1:8765
-npm --prefix electron start                          # desktop app (boots the server itself)
-CATBOT_VIEW=billu npm --prefix electron start        # simple Billu mode: just the cat, no technical cards
+./scripts/start_catbot.sh                            # desktop app (own mic/screen permissions; logs in data/catbot.log)
+npm --prefix electron start                          # same app, but inherits the terminal's macOS permissions
+CATBOT_VIEW=billu ./scripts/start_catbot.sh          # simple Billu mode: just the cat, no technical cards
 pytest -q
 ```
 
