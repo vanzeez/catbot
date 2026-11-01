@@ -2,7 +2,7 @@
 
 A voice-driven desktop agent for Hindi, Hinglish, Tamil and English speakers. Built for the Ship Happens hackathon (31 Oct 2026) with **Sarvam**, **Laya** and **Failproof AI**.
 
-You hold a key and say "volume kam karo". Sarvam transcribes it, Sarvam-105B decides what to do, a safety gate reviews every single action, the action runs, and Bulbul answers you out loud.
+Meet **Billu**, the cat who runs it. Say "meow" (or "Billu") and then "volume kam karo". Billu talks back in Delhi-style Hinglish, in Bulbul's `ratan_hi_social` voice. Sarvam transcribes it, Sarvam-105B decides what to do, a safety gate reviews every single action, the action runs, and Bulbul answers you out loud.
 
 ## How it works
 
@@ -68,6 +68,7 @@ macOS notes: `lock_screen` uses `pmset displaysleepnow`, which only locks if Sys
 python -m catbot --text "volume kam karo" --fake     # text mode, fake Sarvam and fake tools
 python -m catbot --serve --voice                     # server + UI at http://127.0.0.1:8765
 npm --prefix electron start                          # desktop app (boots the server itself)
+CATBOT_VIEW=billu npm --prefix electron start        # simple Billu mode: just the cat, no technical cards
 pytest -q
 ```
 

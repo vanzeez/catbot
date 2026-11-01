@@ -9,6 +9,7 @@ from catbot.config import Thresholds
 from catbot.contracts import GateToken, PolicyVerdict, RiskDecision, Tier, ToolCall, max_tier
 from catbot.decide.keyword_gate import is_pure_read
 from catbot.safety.patterns import secret_kind
+from catbot.tools.coder import SLUG
 from catbot.tools.registry import TOOLS
 
 _ISSUED: dict[str, GateToken] = {}
@@ -55,6 +56,8 @@ def policy_gate(
     th = thresholds or Thresholds()
     if call.tool not in TOOLS:
         return _deny("unknown_tool", f"No tool named {call.tool}.")
+    if call.tool == "write_code" and not SLUG.fullmatch(str(call.args.get("app_name", ""))):
+        return _deny("bad_app_name", "App name must be a plain slug inside the work folder.")
     if kind := secret_kind(call.args):
         return _deny("secret_in_args", f"Arguments contain a secret ({kind}).")
     tier = effective_tier(call, risk, th, utterance_floor)

@@ -103,6 +103,11 @@ class Loop:
         self.store.finish_task(task_id, out.ok, out.stopped_by, out.spoken, ms)
         return out
 
+    def _style(self) -> str:
+        if self.s.match_user_lang:
+            return "match"
+        return "english" if self.s.reply_lang.startswith("en") else "delhi"
+
     async def _greet(self, task_id: str, lang: str) -> TaskOutcome:
         text = messages.reason_text("greet", lang)
         self.store.add_task(task_id, "meow", lang)
@@ -121,7 +126,7 @@ class Loop:
         msgs: list[dict[str, Any]] = [
             {
                 "role": "system",
-                "content": system_prompt(self.s.os_name, cwd, english=not self.s.match_user_lang),
+                "content": system_prompt(self.s.os_name, cwd, style=self._style()),
             },
             {"role": "user", "content": utterance},
         ]
@@ -133,7 +138,8 @@ class Loop:
             "history": [],
         }
         while True:
-            if st["step"] >= th.max_steps or time.monotonic() - t0 > th.max_wall_s:
+            busy = time.monotonic() - t0 - st.get("long_tool_s", 0.0)
+            if st["step"] >= th.max_steps or busy > th.max_wall_s:
                 raise Stop("task_limits", messages.reason_text("task_limits", lang))
             turn = await self.llm.chat(msgs, ALL_TOOL_SCHEMAS)
             self.bus.emit(
@@ -247,7 +253,12 @@ class Loop:
             if not confirmed:
                 raise Stop("user_cancel", messages.reason_text("user_cancel", lang))
         token = issue_token(call, verdict, confirmed=confirmed)
+        started = time.monotonic()
+        if call.tool == "write_code":
+            await self._speak(task_id, messages.reason_text("coding_start", lang), lang)
         argv, result = await self.executor.execute(call, token)
+        if call.tool == "write_code":  # a coding job may take minutes; not part of the 60 s budget
+            st["long_tool_s"] = st.get("long_tool_s", 0.0) + time.monotonic() - started
         self.bus.emit(
             task_id,
             "execute",

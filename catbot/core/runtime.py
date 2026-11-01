@@ -60,7 +60,9 @@ def build(
         tools = FakeTools()
     else:
         settings.shell_cwd.mkdir(parents=True, exist_ok=True)
-        tools = RealTools(settings.shell_cwd, settings.tavily_api_key.get_secret_value())
+        tools = RealTools(
+            settings.shell_cwd, settings.tavily_api_key.get_secret_value(), settings.codex_model
+        )
     store = store or Store(settings.db_path)
     bus = bus or EventBus(store)
     failproof = FailproofBridge(settings.failproof_mode)

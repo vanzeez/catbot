@@ -20,6 +20,7 @@ def make_rt(tmp_path, monkeypatch):
     monkeypatch.setenv("FAILPROOF_MODE", "off")
 
     def _make(auto="haan", **over):
+        over = {"reply_lang": "hi-IN", "match_user_lang": False, **over}
         s = load_settings(
             fakes=True,
             failproof_mode="off",

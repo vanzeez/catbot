@@ -18,9 +18,10 @@ class ToolBackend(Protocol):
 class RealTools:
     name = "real"
 
-    def __init__(self, shell_cwd: Path, tavily_key: str = "") -> None:
+    def __init__(self, shell_cwd: Path, tavily_key: str = "", codex_model: str = "gpt-5.6-luna"):
         self.shell_cwd = shell_cwd
         self.tavily_key = tavily_key
+        self.codex_model = codex_model
 
     async def run(self, tool: str, args: dict[str, Any]) -> tuple[list[str], ToolResult]:
         from catbot.tools import desktop, screen, shell, web
@@ -39,6 +40,12 @@ class RealTools:
             return await screen.read_screen()
         if tool == "web_search":
             return await web.web_search(args["query"], self.tavily_key)
+        if tool == "write_code":
+            from catbot.tools.coder import write_code
+
+            return await write_code(
+                args["app_name"], args["spec"], sandbox=self.shell_cwd, model=self.codex_model
+            )
         return [tool], ToolResult(ok=False, summary="unknown tool", error="unknown tool")
 
 

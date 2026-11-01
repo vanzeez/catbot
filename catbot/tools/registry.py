@@ -48,6 +48,17 @@ TOOLS: dict[str, ToolSpec] = {
         ToolSpec("take_screenshot", "Capture the screen now and save it as an image.", "T0"),
         ToolSpec("read_screen", "Read the visible text on the screen (OCR).", "T0"),
         ToolSpec(
+            "write_code",
+            "Build a small web app (HTML/CSS/JS) with a coding agent in the work folder, then "
+            "open it in the browser. Use for any 'make/build/code an app' request.",
+            "T1",
+            {
+                "app_name": {"type": "string", "description": "Short slug, e.g. chai-counter."},
+                "spec": {"type": "string", "description": "One-paragraph English description."},
+            },
+            ["app_name", "spec"],
+        ),
+        ToolSpec(
             "web_search",
             "Search the web and return the top results.",
             "T0",

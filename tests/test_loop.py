@@ -8,7 +8,7 @@ from tests.conftest import stages
 async def test_line1_volume(make_rt):
     rt = make_rt()
     out = await rt.loop.handle("volume kam karo")
-    assert out.ok and out.spoken == "Volume lowered."
+    assert out.ok and out.spoken == "Ho gaya, Billu ka kaam pakka kaam. Volume is down."
     assert stages(rt.events) == [
         "risk",
         "think",

@@ -99,6 +99,16 @@ Status: **run live 31 Oct ~14:00 IST**, 48 calls of 25 rows.
 - **Sarvam's tier labels are loose** (it filed `sudo apt install` and `rm -r` under T2). Rows are kept only when the gate's own tiering agrees: 841 of 1,132 kept (74%). About 30% of kept requests are Hinglish.
 - It copies and invents template placeholders (`{f}`, `{s}`) and echoes the example layout (`| command_t0_1`); `_clean()` fills or strips them.
 
+## Codex CLI (`scripts/smoke_codex.py`, `write_code`)
+
+Status: **run live 1 Nov**, `codex-cli 0.153.4`, logged in with ChatGPT.
+
+- `codex exec … [PROMPT]` **reads stdin to EOF when stdin is a pipe** and appends it to the prompt, so a subprocess with an inherited pipe hangs forever. Run it with `stdin=DEVNULL`.
+- The user's `~/.codex/config.toml` sets `model = "gpt-6.1-sol"`, which fails: "not supported when using Codex with a ChatGPT account" (400 `model_not_found`). This login allows `gpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` (`~/.codex/models_cache.json`). Catbot passes `-m $CODEX_MODEL` (default `gpt-5.6-luna`) and `-c model_reasoning_effort=low` per run; the user's config is untouched.
+- `--json` events: `thread.started`, `turn.started`, `item.started` / `item.completed` (item types include `command_execution`, `error` for warnings), `turn.completed` (with `usage`), or `error` + `turn.failed` on failure. `-o FILE` writes the last message.
+- Smoke: a one-file counter page in 18.7 s; about 154k input tokens per run (the user's Codex skills and plugins are loaded).
+- Live via Billu: "Billu, ek chai counter app bana do" → Sarvam called `write_code(app_name="chai-counter", spec=…)`, gate T1 allow, Codex wrote a 9.8 KB `index.html` and it opened in the browser; whole task 42 s.
+
 ## Spec corrections
 
 0. Spec 5.1 has Laya replace the keyword gate. Catbot keeps the keyword tier as a floor under Laya (see "Laya fine-tune"): the tuned model under-tiers credential reads and piped installers.

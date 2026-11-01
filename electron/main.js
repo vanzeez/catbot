@@ -70,7 +70,9 @@ async function createWindow() {
     if (pttDown && input.type === "keyUp" && input.code === "Space") sendPtt("up");
   });
   globalShortcut.register(HOTKEY, () => sendPtt(pttDown ? "up" : "down"));
-  await win.loadURL(URL);
+  // CATBOT_VIEW=billu opens the simple view with just the cat.
+  const view = process.env.CATBOT_VIEW ? `/?view=${encodeURIComponent(process.env.CATBOT_VIEW)}` : "/";
+  await win.loadURL(URL + view);
 }
 
 app.whenReady().then(async () => {

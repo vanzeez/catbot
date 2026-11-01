@@ -12,8 +12,9 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 export const v = (name) => `var(${name})`;
 
 const HEAD = {
-  sleeping: ["Zzz…", "Zzz…"], listening: ["Bolo, sun rahe hain.", "Listening."], thinking: ["Ek second…", "On it…"],
-  asking: ["Pakka?", "Sure?"], blocked: ["Nahi hoga.", "Not doing that."], done: ["Ho gaya.", "Done."],
+  sleeping: ["Zzz…", "Zzz…"], listening: ["Kya hai? Bolo jaldi.", "Listening."],
+  thinking: ["Uff… karta hoon.", "On it…"], asking: ["Pakka? Baad me rona mat.", "Sure?"],
+  blocked: ["Arre pagal hai kya?", "Not doing that."], done: ["Billu ka kaam, pakka kaam.", "Done."],
 };
 
 export function renderCat(state, sub, lang, color) {
@@ -22,7 +23,7 @@ export function renderCat(state, sub, lang, color) {
   cat.setAttribute("aria-label", `Catbot is ${state}`);
   $("stage").style.setProperty("--stage-color", v(color));
   $("headline").textContent = HEAD[state][String(lang || "hi").startsWith("en") ? 1 : 0];
-  $("subline").textContent = sub || (state === "sleeping" ? "say “meow” to wake me" : "");
+  $("subline").textContent = sub || (state === "sleeping" ? "bol “meow” ya “Billu”, main jaag jaunga" : "");
 }
 
 export function renderRail(view) {

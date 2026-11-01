@@ -75,12 +75,14 @@ function onEvent(e) {
     v.confirm = { question: p.question, until: Date.now() + 8000 };
     setRail(v, "confirm", "active");
     renderCat("asking", p.question, S.lang, COLOR.confirm);
+    $("stage-confirm").hidden = false;
     openSheet(p.question);
     startCountdown(v);
   } else if (e.stage === "confirm") {
     v.confirm = null;
     v.laya.reply = p.answer;
     setRail(v, "confirm", p.answer?.choice === "A" ? "done" : "failed");
+    $("stage-confirm").hidden = true;
     closeSheet();
   } else if (e.stage === "execute") {
     v.call = p;
@@ -98,6 +100,7 @@ function onEvent(e) {
   } else if (e.stage === "done") {
     v.total = e.latency_ms;
     v.confirm = null;
+    $("stage-confirm").hidden = true;
     closeSheet();
     const speak = S.lines.find((x) => x.e.task_id === e.task_id && x.e.stage === "speak");
     const said = speak ? speak.e.payload.text : "";
@@ -180,11 +183,8 @@ async function stats() {
     const chips = [
       s.gate === "laya" ? `<span class="chip laya">gate: LAYA</span>` : `<span class="chip warn">gate: KEYWORD</span>`,
       s.shadow ? `<span class="chip">shadow</span>` : "",
-      s.checkpoint ? `<span class="chip laya">ckpt: ${s.checkpoint}</span>` : "",
-      `<span class="chip">os: ${s.os}</span>`,
-      s.llm === "fake" ? `<span class="chip warn">llm: fake</span>` : `<span class="chip ok">llm: ${s.llm}</span>`,
-      s.tools === "fake" ? `<span class="chip warn">tools: fake</span>` : "",
-      s.voice ? `<span class="chip ok">voice</span>` : `<span class="chip">voice off</span>`,
+      s.llm === "fake" || s.tools === "fake" ? `<span class="chip warn">fake mode</span>` : "",
+      s.voice ? `<span class="chip ok">voice on</span>` : `<span class="chip">voice off</span>`,
     ];
     $("chips").innerHTML = chips.join("");
     $("corrections").textContent = s.corrections;
@@ -290,6 +290,19 @@ addEventListener("keyup", (e) => { if (e.code === "Space" && !typing(e)) up(); }
 if (window.catbot?.onPtt) window.catbot.onPtt((state) => (state === "down" ? down() : up()));
 $("help-btn").onclick = () => $("help").showModal();
 $("help-close").onclick = () => $("help").close();
+
+// ---- Billu mode (just the cat) vs details mode -------------------------------------------------
+function setView(view) {
+  const billu = view === "billu";
+  document.body.classList.toggle("view-billu", billu);
+  $("view-btn").setAttribute("aria-pressed", String(billu));
+  $("view-btn").textContent = billu ? "Show details" : "Billu mode";
+  try { localStorage.setItem("catbot.view", billu ? "billu" : "details"); } catch (_) { /* blocked */ }
+}
+let startView = new URLSearchParams(location.search).get("view");
+if (!startView) { try { startView = localStorage.getItem("catbot.view"); } catch (_) { /* blocked */ } }
+setView(startView === "billu" ? "billu" : "details");
+$("view-btn").onclick = () => setView(document.body.classList.contains("view-billu") ? "details" : "billu");
 
 renderAll();
 connect();

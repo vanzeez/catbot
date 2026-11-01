@@ -53,4 +53,11 @@ class FakeTools:
             return ["tavily", args.get("query", "")], ToolResult(
                 ok=True, summary="2 results (fake)", data={"results": results}, origin="web"
             )
+        if tool == "write_code":
+            name = args.get("app_name", "app")
+            return ["codex", "exec", name], ToolResult(
+                ok=True,
+                summary=f"built {name} (index.html) and opened it in the browser (fake)",
+                data={"files": ["index.html"]},
+            )
         return [tool], ToolResult(ok=False, summary="unknown tool", error="unknown tool")

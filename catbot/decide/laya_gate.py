@@ -106,7 +106,9 @@ class LayaGate:
             tier = Answer(
                 choice=spec.tier_hint, confidence=1.0, source="laya", checkpoint=self.checkpoint
             )
-        else:
+        if call.tool == "write_code":  # not in Laya's training data: keyword verify
+            verify = self._keyword.classify(call).verify
+        if spec is None or spec.tier_hint is None:
             # Defense in depth (EVAL: the tuned checkpoint called credential reads T0 at 0.98):
             # the regex tier is a floor. Laya may raise risk, never lower it below the keyword.
             kw = self._keyword.classify(call).tier

@@ -15,6 +15,7 @@
   <h1 class="wordmark">catbot<span>.</span></h1>
   <span class="live" id="live"><i></i><span id="live-text">connecting…</span></span>
   <div class="chips" id="chips"></div>
+  <button class="view-btn" id="view-btn" aria-pressed="false">Billu mode</button>
   <button class="icon-btn" id="help-btn" aria-label="Keyboard shortcuts">?</button>
 </header>
 
@@ -47,8 +48,13 @@
   <g class="sparkle"><path d="M70 90 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M262 96 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M60 210 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M270 222 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
 </svg>
     </div>
+    <p class="cat-name">Billu</p>
     <p class="headline" id="headline">Zzz…</p>
-    <p class="subline" id="subline">say “meow” to wake me</p>
+    <p class="subline" id="subline">bol “meow” ya “Billu”, main jaag jaunga</p>
+    <div class="stage-confirm" id="stage-confirm" hidden>
+      <button class="btn-yes" data-reply="haan">Yes, do it</button>
+      <button class="btn-no" data-reply="nahi">No</button>
+    </div>
     <div class="ticker" id="ticker"><span id="partial"></span><span id="final" aria-live="polite"></span></div>
     <button class="ptt" id="ptt" aria-label="Hold to talk">
       <span class="ptt-icon"></span><span class="ptt-label">Hold Space to talk</span>

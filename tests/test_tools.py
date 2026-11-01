@@ -62,7 +62,7 @@ def test_lock_argv(monkeypatch):
 
 
 def test_registry_schemas():
-    assert len(TOOLS) == 6 and len(ALL_TOOL_SCHEMAS) == 6
+    assert len(TOOLS) == 7 and len(ALL_TOOL_SCHEMAS) == 7
     assert validate_args("run_command", {"command": "ls"})["timeout_s"] == 15
     assert validate_args("set_volume", {"action": "set", "level": 30})["level"] == 30
 
@@ -74,7 +74,7 @@ def test_provenance():
 
 
 def test_messages_langs():
-    assert reason_text("tier_t3", "hi-IN").startswith("Ye kaam")
+    assert reason_text("tier_t3", "hi-IN").endswith("Do it yourself.")
     assert reason_text("unknown_policy", "ta-IN")
     from catbot.contracts import ToolCall
 
@@ -86,10 +86,7 @@ def test_messages_langs():
         args={"command": "mv shot-1.png ~/.Trash/"},
         request_en="x",
     )
-    assert (
-        confirm_question(c, "hi-IN")
-        == "Ye command chalaun: `mv shot-1.png ~/.Trash/`? Haan ya nahi?"
-    )
+    assert confirm_question(c, "hi-IN") == "Shall I run: `mv shot-1.png ~/.Trash/`? Yes or no?"
 
 
 async def test_server_confirm_resolve_and_timeout():
